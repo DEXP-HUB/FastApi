@@ -2,7 +2,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
-from psycopg2.extras import RealDictCursor, RealDictRow
+from psycopg2.extras import RealDictCursor
 
 from .dependencies import auntification
 from ..schemas.users import UserRegSchema

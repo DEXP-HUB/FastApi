@@ -1,4 +1,4 @@
-from src.authx import security
+from .authx import security
 
 from fastapi import FastAPI
 
@@ -9,3 +9,4 @@ app = FastAPI()
 app.include_router(main_router)
 
 security.handle_errors(app)
+
