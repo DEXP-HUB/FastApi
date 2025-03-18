@@ -7,7 +7,7 @@ from psycopg2.extras import RealDictCursor
 from .dependencies import auntification
 from ..schemas.users import UserRegSchema
 from ..database import ConnectionDb, SelectUser, InsertUser
-from ..authx import security, config
+from ..authx import security, config, UserJwtSchema
 
 
 router = APIRouter(prefix='/user', tags=['User router'])
@@ -17,9 +17,9 @@ router = APIRouter(prefix='/user', tags=['User router'])
     path='/profile',
     description='Returns information about the logged in user.',
     )
-def user_profile(user: str = Depends(security.get_current_subject)):
+def user_profile(user: UserJwtSchema = Depends(security.get_current_subject)):
     db = ConnectionDb().connect(cursor_factory=RealDictCursor)
-    profile = SelectUser.by_login(db, user)
+    profile = dict(SelectUser.by_login(db, user.login))
     json = jsonable_encoder(profile)
     response = JSONResponse(json, 200)
     return response    
