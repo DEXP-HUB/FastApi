@@ -7,7 +7,7 @@ from psycopg2.extras import RealDictCursor
 from .dependencies import auntification
 from ..schemas.users import UserRegSchema
 from ..database import ConnectionDb, SelectUser, InsertUser
-from ..authx import security, config, UserJwtSchema
+from ..authx import *
 
 
 router = APIRouter(prefix='/user', tags=['User router'])
@@ -17,9 +17,9 @@ router = APIRouter(prefix='/user', tags=['User router'])
     path='/profile',
     description='Returns information about the logged in user.',
     )
-def user_profile(user: UserJwtSchema = Depends(security.get_current_subject)):
+def user_profile(uid: str = Depends(security.get_current_subject)):
     db = ConnectionDb().connect(cursor_factory=RealDictCursor)
-    profile = dict(SelectUser.by_login(db, user.login))
+    profile = dict(SelectUser.by_id(db, uid))
     json = jsonable_encoder(profile)
     response = JSONResponse(json, 200)
     return response    
@@ -29,8 +29,9 @@ def user_profile(user: UserJwtSchema = Depends(security.get_current_subject)):
     path='/login',
     description='Authentication user',
     )
-def login(login: str = Depends(auntification)):
-    token = security.create_access_token(uid=login)
+def login(user_data: tuple = Depends(auntification)):
+    uid, role, login = user_data
+    token = security.create_access_token(uid=uid, data={'role': role, 'login': login})
     response = JSONResponse(
         content={'token': token, 'status': 200, 'result': 'Password True'}, 
         status_code=200
@@ -50,3 +51,8 @@ def registration(user: UserRegSchema):
         status_code=200, 
         content={'info': 'Create new profile to db', 'status': 200}
     )
+
+
+@router.get('/token')
+def get_token(token: TokenPayload = Depends(access_token_required)):
+    return token

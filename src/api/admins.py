@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 from psycopg2.extras import RealDictCursor
 
-from ..authx import security
+from ..authx import *
 from ..database import ConnectionDb, SelectUser, DeleteUser, UpdateUser
 from ..schemas.users import UserRegSchema
 
@@ -15,14 +15,16 @@ router = APIRouter()
 @router.get(
     path='/users', 
     description='Get all users',
-    dependencies=[Depends(security.access_token_required)]
     )
-def get_users():
-    db = ConnectionDb().connect(cursor_factory=RealDictCursor)  
-    users = SelectUser().all_users(db)
-    json = jsonable_encoder(users)
-    response = JSONResponse(content={ind: el for ind, el in enumerate(json)})
-    return response
+def get_users(token: RequestToken = Depends(security.access_token_required)):
+    if token.role == 'admin':
+        db = ConnectionDb().connect(cursor_factory=RealDictCursor)  
+        users = SelectUser().all_users(db)
+        json = jsonable_encoder(users)
+        response = JSONResponse(content={ind: el for ind, el in enumerate(json)})
+        return response
+    
+    raise HTTPException(status_code=403, detail='Access Denied: Admin privileges required')
 
 
 @router.get(
