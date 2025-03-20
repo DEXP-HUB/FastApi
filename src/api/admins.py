@@ -7,6 +7,7 @@ from psycopg2.extras import RealDictCursor
 from ..authx import *
 from ..database import ConnectionDb, SelectUser, DeleteUser, UpdateUser
 from ..schemas.users import UserRegSchema
+from ..api.dependencies import is_admin
 
 
 router = APIRouter()
@@ -15,22 +16,15 @@ router = APIRouter()
 @router.get(
     path='/users', 
     description='Get all users',
-    )
-def get_users(token: RequestToken = Depends(security.access_token_required)):
-    if token.role == 'admin':
-        db = ConnectionDb().connect(cursor_factory=RealDictCursor)  
-        users = SelectUser().all_users(db)
-        json = jsonable_encoder(users)
-        response = JSONResponse(content={ind: el for ind, el in enumerate(json)})
-        return response
-    
-    raise HTTPException(status_code=403, detail='Access Denied: Admin privileges required')
+)
+def get_users(json: list = Depends(is_admin)):
+    return JSONResponse(content={ind: el for ind, el in enumerate(json)})
 
 
 @router.get(
     path='/user/{id}',
     description='Get user by id',
-    )
+)
 async def get_user(id):
     db = ConnectionDb().connect(cursor_factory=RealDictCursor)
     user = SelectUser.by_id(db, id)
@@ -41,7 +35,7 @@ async def get_user(id):
 @router.delete(
     path='/delete/{id}', 
     description='Delete user from database',
-    )
+)
 def delete_user(id: int):
     db = ConnectionDb().connect()
     DeleteUser.by_id(db, id)
@@ -52,7 +46,7 @@ def delete_user(id: int):
     path='/update', 
     methods=['put', 'path'], 
     description='Update user to database',
-    )
+)
 def update_user(user: UserRegSchema):
     db = ConnectionDb().connect()
     UpdateUser.by_id(db, dict(user))

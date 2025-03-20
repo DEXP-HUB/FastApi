@@ -17,13 +17,3 @@ class UserRegSchema(BaseModel):
     status: Literal['user', 'admin']
     email: EmailStr 
 
-
-class UserLoginSchema(BaseModel):
-    email: EmailStr
-    login: str = Field(max_length=20)
-    password: str = Field(max_length=20)
-
-
-class UserJwtSchema(BaseModel):
-    login: str
-    status: str

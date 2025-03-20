@@ -1,3 +1,4 @@
+from typing import Annotated
 from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -16,7 +17,7 @@ router = APIRouter(prefix='/user', tags=['User router'])
 @router.get(
     path='/profile',
     description='Returns information about the logged in user.',
-    )
+)
 def user_profile(uid: str = Depends(security.get_current_subject)):
     db = ConnectionDb().connect(cursor_factory=RealDictCursor)
     profile = dict(SelectUser.by_id(db, uid))
@@ -28,8 +29,8 @@ def user_profile(uid: str = Depends(security.get_current_subject)):
 @router.post(
     path='/login',
     description='Authentication user',
-    )
-def login(user_data: tuple = Depends(auntification)):
+)
+def login(user_data: dict = Depends(auntification)):
     uid, role, login = user_data
     token = security.create_access_token(uid=uid, data={'role': role, 'login': login})
     response = JSONResponse(
@@ -43,7 +44,7 @@ def login(user_data: tuple = Depends(auntification)):
 @router.post(
     path='/registration', 
     description='Create new profile to db'
-    )
+)
 def registration(user: UserRegSchema):
     db = ConnectionDb().connect()
     InsertUser().insert_all(db, dict(user))
