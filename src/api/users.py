@@ -1,14 +1,17 @@
 from typing import Annotated
+
 from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from authx import TokenPayload
+
 from psycopg2.extras import RealDictCursor
 
-from .dependencies import auntification, create_tokens
+from .dependencies import create_tokens
 from ..schemas.users import UserRegSchema
 from ..database import ConnectionDb, SelectUser, InsertUser
-from ..authx import *
+from ..authx import config, security, access_token_required
 
 
 router = APIRouter(prefix='/user', tags=['User router'])
@@ -38,7 +41,6 @@ def login(tokens: dict = Depends(create_tokens)):
             }, 
         status_code=200
     )
-
     response.set_cookie(config.JWT_ACCESS_COOKIE_NAME, tokens['access_token'])
     response.set_cookie(config.JWT_REFRESH_COOKIE_NAME, tokens['refresh_token'])
     return response

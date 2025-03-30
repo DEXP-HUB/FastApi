@@ -1,19 +1,13 @@
-from typing import Awaitable, Callable
 
-from fastapi import Request
-from authx import AuthX, AuthXConfig, RequestToken, TokenPayload
+from authx import AuthX
 
 from psycopg2.extras import RealDictCursor
 
-
-config = AuthXConfig()
-config.JWT_SECRET_KEY = "SECRET_KEY"
-config.JWT_ACCESS_COOKIE_NAME = "access_token"
-config.JWT_REFRESH_COOKIE_NAME = "refresh_token"
-config.JWT_TOKEN_LOCATION = ["cookies"]
+from .config import config
 
 
 security = AuthX(config=config)
+
 
 
 get_access_from_request = security.get_token_from_request(

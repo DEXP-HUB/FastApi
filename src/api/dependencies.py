@@ -1,10 +1,12 @@
 from fastapi import Depends, HTTPException, Query
 from fastapi.encoders import jsonable_encoder
 
+from authx import TokenPayload
+
 from psycopg2.extras import RealDictCursor
 
 from ..database import ConnectionDb, SelectUser
-from ..authx import *
+from ..authx import config, security, access_token_required
 
 
 def auntification(login: str = Query(max_length=20), password: str = Query(max_length=20)) -> dict:
