@@ -8,15 +8,12 @@ from psycopg2.extras import RealDictCursor
 
 config = AuthXConfig()
 config.JWT_SECRET_KEY = "SECRET_KEY"
-config.JWT_ACCESS_COOKIE_NAME = "my_access_token"
+config.JWT_ACCESS_COOKIE_NAME = "access_token"
+config.JWT_REFRESH_COOKIE_NAME = "refresh_token"
 config.JWT_TOKEN_LOCATION = ["cookies"]
 
 
 security = AuthX(config=config)
-
-
-# TokenGetter = Callable[[Request], Awaitable[RequestToken]]
-# OptTokenGetter = Callable[[Request], Awaitable[RequestToken | None]]
 
 
 get_access_from_request = security.get_token_from_request(

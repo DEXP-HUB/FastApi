@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 
 from psycopg2.extras import RealDictCursor
 
-from .dependencies import auntification
+from .dependencies import auntification, create_tokens
 from ..schemas.users import UserRegSchema
 from ..database import ConnectionDb, SelectUser, InsertUser
 from ..authx import *
@@ -30,14 +30,17 @@ def user_profile(uid: str = Depends(security.get_current_subject)):
     path='/login',
     description='Authentication user',
 )
-def login(user_data: dict = Depends(auntification)):
-    uid, role, login = user_data
-    token = security.create_access_token(uid=uid, data={'role': role, 'login': login})
+def login(tokens: dict = Depends(create_tokens)):
     response = JSONResponse(
-        content={'token': token, 'status': 200, 'result': 'Password True'}, 
+        content={
+            'access_token': tokens['access_token'], 'refresh_token': tokens['refresh_token'], 
+            'status': 200, 'result': 'Password True'
+            }, 
         status_code=200
     )
-    response.set_cookie(config.JWT_ACCESS_COOKIE_NAME, token)
+
+    response.set_cookie(config.JWT_ACCESS_COOKIE_NAME, tokens['access_token'])
+    response.set_cookie(config.JWT_REFRESH_COOKIE_NAME, tokens['refresh_token'])
     return response
 
 
@@ -54,6 +57,6 @@ def registration(user: UserRegSchema):
     )
 
 
-@router.get('/token')
-def get_token(token: TokenPayload = Depends(access_token_required)):
-    return token
+@router.get('/access_token')
+def get_token(access_token: TokenPayload = Depends(access_token_required)):
+    return access_token

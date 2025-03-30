@@ -17,6 +17,15 @@ def auntification(login: str = Query(max_length=20), password: str = Query(max_l
     return {'uid': str(user_data['id']), 'role': user_data['status'], 'login': user_data['login']}
 
 
+def create_tokens(user_data: dict = Depends(auntification)) -> dict:
+    uid, role, login = user_data.values()
+
+    refresh_token = security.create_refresh_token(uid=uid, data={'role': role, 'login': login})
+    access_token = security.create_access_token(uid=uid, data={'role': role, 'login': login})
+
+    return {'access_token': access_token, 'refresh_token': refresh_token}
+
+
 def is_admin(payload: TokenPayload = Depends(access_token_required)):
     if payload.role == 'admin':
         db = ConnectionDb().connect(cursor_factory=RealDictCursor)  
