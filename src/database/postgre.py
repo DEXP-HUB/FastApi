@@ -1,16 +1,22 @@
 import psycopg2
 
+from configparser import ConfigParser
+
 from contextlib import contextmanager
+
+
+config = ConfigParser()
+config.read('src\config.ini')
 
 
 class ConnectionDb:
     def connect(self, cursor_factory=None):
         self.conn = psycopg2.connect(
-            dbname='registration', 
-            user='postgres', 
-            password='lola2015', 
-            host='127.0.0.1', 
-            port='5432',
+            dbname=config['Database']['dbname'], 
+            user=config['Database']['user'], 
+            password=config['Database']['password'],
+            host=config['Database']['host'], 
+            port=config['Database']['port'],
             cursor_factory=cursor_factory
         )
         

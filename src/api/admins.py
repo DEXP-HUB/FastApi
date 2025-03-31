@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from psycopg2.extras import RealDictCursor
 
 from ..authx import *
-from ..database import ConnectionDb, SelectUser, DeleteUser, UpdateUser
+from ..database.postgre import ConnectionDb, SelectUser, DeleteUser, UpdateUser
 from ..schemas.users import UserRegSchema
 from ..api.dependencies import is_admin
 

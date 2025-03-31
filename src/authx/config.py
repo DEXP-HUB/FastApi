@@ -1,16 +1,18 @@
 import os
 
-from dotenv import load_dotenv
-
 from authx import AuthXConfig
 
+from configparser import ConfigParser
 
-load_dotenv()
 
 
-config = AuthXConfig(
-    JWT_SECRET_KEY=str(os.getenv('JWT_SECRET_KEY')),
-    JWT_ACCESS_COOKIE_NAME=str(os.getenv('JWT_ACCESS_COOKIE_NAME')),
-    JWT_REFRESH_COOKIE_NAME=str(os.getenv('JWT_REFRESH_COOKIE_NAME')),
-    JWT_TOKEN_LOCATION=['cookies']
+config = ConfigParser()
+config.read('src\config.ini')
+
+
+config_authx = AuthXConfig(
+    JWT_SECRET_KEY=config['Authx']['JWT_SECRET_KEY'],
+    JWT_ACCESS_COOKIE_NAME=config['Authx']['JWT_ACCESS_COOKIE_NAME'],
+    JWT_REFRESH_COOKIE_NAME=config['Authx']['JWT_REFRESH_COOKIE_NAME'],
+    JWT_TOKEN_LOCATION=[config['Authx']['JWT_TOKEN_LOCATION']]
 )

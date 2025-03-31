@@ -1,13 +1,11 @@
-
 from authx import AuthX
 
 from psycopg2.extras import RealDictCursor
 
-from .config import config
+from .config import config_authx
 
 
-security = AuthX(config=config)
-
+security = AuthX(config=config_authx)
 
 
 get_access_from_request = security.get_token_from_request(
