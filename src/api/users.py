@@ -8,7 +8,7 @@ from authx import TokenPayload
 
 from psycopg2.extras import RealDictCursor
 
-from .dependencies import create_tokens
+from .dependencies import auntification
 from ..schemas.users import UserRegSchema
 from ..database.postgre import ConnectionDb, SelectUser, InsertUser
 from ..authx import config_authx, security, access_token_required
@@ -24,8 +24,10 @@ router = APIRouter(prefix='/user', tags=['User router'])
 def user_profile(uid: str = Depends(security.get_current_subject)):
     db = ConnectionDb().connect(cursor_factory=RealDictCursor)
     profile = dict(SelectUser.by_id(db, uid))
+
     json = jsonable_encoder(profile)
     response = JSONResponse(json, 200)
+
     return response    
 
 
@@ -33,16 +35,19 @@ def user_profile(uid: str = Depends(security.get_current_subject)):
     path='/login',
     description='Authentication user',
 )
-def login(tokens: dict = Depends(create_tokens)):
+def login(user_data: dict = Depends(auntification)):
     response = JSONResponse(
         content={
-            'access_token': tokens['access_token'], 'refresh_token': tokens['refresh_token'], 
+            'access_token': user_data['access_token'], 
+            'refresh_token': user_data['refresh_token'], 
             'status': 200, 'result': 'Password True'
             }, 
         status_code=200
     )
-    response.set_cookie(config_authx.JWT_ACCESS_COOKIE_NAME, tokens['access_token'])
-    response.set_cookie(config_authx.JWT_REFRESH_COOKIE_NAME, tokens['refresh_token'])
+
+    response.set_cookie(config_authx.JWT_ACCESS_COOKIE_NAME, user_data['access_token'])
+    response.set_cookie(config_authx.JWT_REFRESH_COOKIE_NAME, user_data['refresh_token'])
+
     return response
 
 
@@ -53,6 +58,7 @@ def login(tokens: dict = Depends(create_tokens)):
 def registration(user: UserRegSchema):
     db = ConnectionDb().connect()
     InsertUser().insert_all(db, dict(user))
+
     return JSONResponse(
         status_code=200, 
         content={'info': 'Create new profile to db', 'status': 200}
@@ -62,3 +68,4 @@ def registration(user: UserRegSchema):
 @router.get('/access_token')
 def get_token(access_token: TokenPayload = Depends(access_token_required)):
     return access_token
+

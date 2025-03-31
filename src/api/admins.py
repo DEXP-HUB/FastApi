@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
@@ -16,8 +16,12 @@ router = APIRouter()
 @router.get(
     path='/users', 
     description='Get all users',
+    dependencies=[Depends(is_admin)]
 )
-def get_users(json: list = Depends(is_admin)):
+def get_users():
+    db = ConnectionDb().connect(cursor_factory=RealDictCursor)  
+    users = SelectUser().all_users(db)
+    json = jsonable_encoder(users)
     return JSONResponse(content={ind: el for ind, el in enumerate(json)})
 
 
@@ -33,13 +37,14 @@ async def get_user(id):
 
 
 @router.delete(
-    path='/delete/{id}', 
+    path='/delete', 
     description='Delete user from database',
+    dependencies=[Depends(is_admin)]
 )
 def delete_user(id: int):
     db = ConnectionDb().connect()
     DeleteUser.by_id(db, id)
-    return JSONResponse(content={'status': 200})
+    return JSONResponse(content={'status': 200}, status_code=200)
 
 
 @router.api_route(

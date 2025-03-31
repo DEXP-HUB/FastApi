@@ -18,7 +18,7 @@ access_token_required = security.token_required(
     type = "access",
     verify_type = True,
     verify_fresh = False,
-    verify_csrf = None
+    verify_csrf = True
 )
 
 
