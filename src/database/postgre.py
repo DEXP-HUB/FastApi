@@ -107,10 +107,10 @@ class UpdateUser:
     @classmethod
     def by_id(cls, connect, data):
         cls.conn = connect
-        param = [f"{key} = %({key})s" for key in data.keys() if key != 'id']
+        param = [f"{key} = %({key})s" for key in data.keys() if key != 'user_id']
 
         with cls.conn as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    f"UPDATE users.profiles SET {', '.join(param)} WHERE id = %(id)s;", data
+                    f"UPDATE users.profiles SET {', '.join(param)} WHERE id = %(user_id)s;", data
                 )

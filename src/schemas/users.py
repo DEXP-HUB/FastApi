@@ -17,3 +17,6 @@ class UserRegSchema(BaseModel):
     status: Literal['user', 'admin']
     email: EmailStr 
 
+
+class UserUpdateSchema(UserRegSchema):
+    user_id: int = Field(ge=0)

@@ -6,8 +6,8 @@ from psycopg2.extras import RealDictCursor
 
 from ..authx import *
 from ..database.postgre import ConnectionDb, SelectUser, DeleteUser, UpdateUser
-from ..schemas.users import UserRegSchema
-from ..api.dependencies import is_admin
+from ..schemas.users import UserRegSchema, UserUpdateSchema
+from ..api.dependencies import is_admin, set_param_put
 
 
 router = APIRouter()
@@ -47,12 +47,21 @@ def delete_user(id: int):
     return JSONResponse(content={'status': 200}, status_code=200)
 
 
-@router.api_route(
-    path='/update', 
-    methods=['put', 'path'], 
+@router.patch(
+    path='/update-user', 
     description='Update user to database',
+    dependencies=[Depends(is_admin)],
 )
-def update_user(user: UserRegSchema):
+def update_user(user: UserUpdateSchema):
     db = ConnectionDb().connect()
     UpdateUser.by_id(db, dict(user))
     return JSONResponse(content=jsonable_encoder(user))
+
+
+@router.put(
+    path='/new-param',
+    description='Set param for user to database',
+    dependencies=[Depends(is_admin)],
+)
+def new_param(data: dict = Depends(set_param_put)):
+    return data

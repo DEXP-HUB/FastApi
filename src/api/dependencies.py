@@ -1,3 +1,7 @@
+from typing import Literal
+
+from pydantic import EmailStr
+
 from fastapi import Depends, HTTPException, Query, Request
 from fastapi.encoders import jsonable_encoder
 
@@ -6,7 +10,7 @@ from authx import TokenPayload
 from psycopg2.extras import RealDictCursor
 
 from ..database.postgre import ConnectionDb, SelectUser
-from ..authx import security, access_token_required
+from ..authx import security, access_token_required, get_access_from_request
 
 
 def create_tokens(uid: str, role: str, login: str) -> dict:
@@ -31,5 +35,21 @@ def is_admin(payload: TokenPayload = Depends(access_token_required)):
     if payload.role == 'admin':
         return True
     
-    else:
-        raise HTTPException(status_code=403, detail='Access Denied: Admin privileges required')
+    raise HTTPException(status_code=403, detail='Access Denied: Admin privileges required')
+
+
+def set_param_put(
+    login: str = Query(max_length=20, default=None),
+    password: str = Query(max_length=20, default=None),
+    first_name: str = Query(max_length=15, default=None),
+    last_name: str = Query(max_length=15, default=None),
+    city: str = Query(max_length=20, default=None),
+    address: str = Query(max_length=50, default=None),
+    age: int = Query(ge=0, le=115, default=None),
+    floor: int = Query(ge=0, le=163, default=None),
+    apartament_number: int = Query(ge=0, default=None),
+    data_registratsii: Literal['NOW()'] = Query(default=None),
+    status: Literal['user', 'admin'] = Query(default=None),
+    email: EmailStr = Query(default=None),
+):
+    return locals()

@@ -15,5 +15,5 @@ config_authx = AuthXConfig(
     JWT_ACCESS_COOKIE_NAME = config['Authx']['JWT_ACCESS_COOKIE_NAME'],
     JWT_REFRESH_COOKIE_NAME = config['Authx']['JWT_REFRESH_COOKIE_NAME'],
     JWT_TOKEN_LOCATION = [config['Authx']['JWT_TOKEN_LOCATION']],
-    # JWT_COOKIE_CSRF_PROTECT = False
+    JWT_COOKIE_CSRF_PROTECT = False
 )

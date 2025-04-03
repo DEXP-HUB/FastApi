@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi.encoders import jsonable_encoder
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from authx import TokenPayload
 
@@ -11,7 +11,7 @@ from psycopg2.extras import RealDictCursor
 from .dependencies import auntification
 from ..schemas.users import UserRegSchema
 from ..database.postgre import ConnectionDb, SelectUser, InsertUser
-from ..authx import config_authx, security, access_token_required
+from ..authx import config_authx, security, access_token_required, get_access_from_request
 
 
 router = APIRouter(prefix='/user', tags=['User router'])
@@ -29,6 +29,11 @@ def user_profile(uid: str = Depends(security.get_current_subject)):
     response = JSONResponse(json, 200)
 
     return response    
+
+
+@router.get('/access_token')
+def get_token(access_token: TokenPayload = Depends(access_token_required)):
+    return access_token
 
 
 @router.post(
@@ -53,7 +58,7 @@ def login(user_data: dict = Depends(auntification)):
 
 @router.post(
     path='/registration', 
-    description='Create new profile to db'
+    description='Create new profile to db',
 )
 def registration(user: UserRegSchema):
     db = ConnectionDb().connect()
@@ -65,7 +70,17 @@ def registration(user: UserRegSchema):
     )
 
 
-@router.get('/access_token')
-def get_token(access_token: TokenPayload = Depends(access_token_required)):
-    return access_token
+@router.post(
+    path='/logout',
+    description='Out from profile',
+    dependencies=[Depends(get_access_from_request)],   
+)
+def logout():
+    response = Response(status_code=204)
+    response.delete_cookie(key=config_authx.JWT_ACCESS_COOKIE_NAME)
+    response.delete_cookie(key=config_authx.JWT_REFRESH_COOKIE_NAME)
+    return response
+
+
+
 
