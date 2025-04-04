@@ -107,8 +107,8 @@ class UpdateUser:
     @classmethod
     def by_id(cls, connect, data):
         cls.conn = connect
-        param = [f"{key} = %({key})s" for key in data.keys() if key != 'user_id']
-
+        param = [f"{key} = %({key})s" for key in data.keys() if key != 'user_id' and data[key] is not None]
+        
         with cls.conn as conn:
             with conn.cursor() as cur:
                 cur.execute(

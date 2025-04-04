@@ -14,7 +14,7 @@ from ..database.postgre import ConnectionDb, SelectUser, InsertUser
 from ..authx import config_authx, security, access_token_required, get_access_from_request
 
 
-router = APIRouter(prefix='/user', tags=['User router'])
+router = APIRouter(prefix='/user', tags=['User API'])
 
 
 @router.get(
@@ -31,7 +31,7 @@ def user_profile(uid: str = Depends(security.get_current_subject)):
     return response    
 
 
-@router.get('/access_token')
+@router.get('/access-token')
 def get_token(access_token: TokenPayload = Depends(access_token_required)):
     return access_token
 
@@ -65,8 +65,8 @@ def registration(user: UserRegSchema):
     InsertUser().insert_all(db, dict(user))
 
     return JSONResponse(
-        status_code=200, 
-        content={'info': 'Create new profile to db', 'status': 200}
+        status_code=201, 
+        content={'info': 'Create new profile to db', 'status': 201}
     )
 
 
@@ -79,6 +79,7 @@ def logout():
     response = Response(status_code=204)
     response.delete_cookie(key=config_authx.JWT_ACCESS_COOKIE_NAME)
     response.delete_cookie(key=config_authx.JWT_REFRESH_COOKIE_NAME)
+
     return response
 
 

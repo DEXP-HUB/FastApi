@@ -39,6 +39,7 @@ def is_admin(payload: TokenPayload = Depends(access_token_required)):
 
 
 def set_param_put(
+    user_id: int = Query(ge=0),
     login: str = Query(max_length=20, default=None),
     password: str = Query(max_length=20, default=None),
     first_name: str = Query(max_length=15, default=None),

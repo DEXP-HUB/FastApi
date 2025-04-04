@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from psycopg2.extras import RealDictCursor
 
@@ -10,7 +10,7 @@ from ..schemas.users import UserRegSchema, UserUpdateSchema
 from ..api.dependencies import is_admin, set_param_put
 
 
-router = APIRouter()
+router = APIRouter(tags=['Admins API'])
 
 
 @router.get(
@@ -44,7 +44,7 @@ async def get_user(id):
 def delete_user(id: int):
     db = ConnectionDb().connect()
     DeleteUser.by_id(db, id)
-    return JSONResponse(content={'status': 200}, status_code=200)
+    return Response(status_code=204)
 
 
 @router.patch(
@@ -55,13 +55,15 @@ def delete_user(id: int):
 def update_user(user: UserUpdateSchema):
     db = ConnectionDb().connect()
     UpdateUser.by_id(db, dict(user))
-    return JSONResponse(content=jsonable_encoder(user))
+    return JSONResponse(status_code=201, content=jsonable_encoder(user))
 
 
 @router.put(
     path='/new-param',
-    description='Set param for user to database',
+    description='Set new param for user to database',
     dependencies=[Depends(is_admin)],
 )
 def new_param(data: dict = Depends(set_param_put)):
-    return data
+    db = ConnectionDb().connect()
+    UpdateUser.by_id(db, data)
+    return JSONResponse(status_code=201, content={'status': 201, 'message': 'Updated user'})
