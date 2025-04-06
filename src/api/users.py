@@ -1,13 +1,14 @@
 from typing import Annotated
 
 from fastapi.encoders import jsonable_encoder
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, BackgroundTasks
 from fastapi.responses import JSONResponse, Response
 
 from authx import TokenPayload
 
 from psycopg2.extras import RealDictCursor
 
+from ..services.mail import send_message
 from .dependencies import auntification
 from ..schemas.users import UserRegSchema
 from ..database.postgre import ConnectionDb, SelectUser, InsertUser
@@ -42,31 +43,32 @@ def get_token(access_token: TokenPayload = Depends(access_token_required)):
 )
 def login(user_data: dict = Depends(auntification)):
     response = JSONResponse(
-        content={
-            'access_token': user_data['access_token'], 
-            'refresh_token': user_data['refresh_token'], 
-            'status': 200, 'result': 'Password True'
-            }, 
-        status_code=200
-    )
+            content={
+                'access_token': user_data['access_token'], 
+                'refresh_token': user_data['refresh_token'], 
+                'status': 200, 'result': 'Password True',
+                }, 
+            status_code=200
+        )
 
     response.set_cookie(config_authx.JWT_ACCESS_COOKIE_NAME, user_data['access_token'])
     response.set_cookie(config_authx.JWT_REFRESH_COOKIE_NAME, user_data['refresh_token'])
 
     return response
-
+    
 
 @router.post(
     path='/registration', 
     description='Create new profile to db',
 )
-def registration(user: UserRegSchema):
+def registration(user: UserRegSchema, bg_task: BackgroundTasks):
     db = ConnectionDb().connect()
     InsertUser().insert_all(db, dict(user))
 
     return JSONResponse(
         status_code=201, 
-        content={'info': 'Create new profile to db', 'status': 201}
+        content={'info': 'Create new profile to db', 'status': 201},
+        background=bg_task.add_task(send_message, user.email),
     )
 
 

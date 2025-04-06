@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, Response
 
@@ -6,7 +6,7 @@ from psycopg2.extras import RealDictCursor
 
 from ..authx import *
 from ..database.postgre import ConnectionDb, SelectUser, DeleteUser, UpdateUser
-from ..schemas.users import UserRegSchema, UserUpdateSchema
+from ..schemas.users import UserUpdateSchema
 from ..api.dependencies import is_admin, set_param_put
 
 
@@ -41,9 +41,13 @@ async def get_user(id):
     description='Delete user from database',
     dependencies=[Depends(is_admin)]
 )
-def delete_user(id: int):
-    db = ConnectionDb().connect()
-    DeleteUser.by_id(db, id)
+def delete_user(id: int, request: Request):
+    db = ConnectionDb().connect(cursor_factory=RealDictCursor)
+    uid = dict(SelectUser().by_id(db, id))
+    if uid['id'] == request.cookies.get('id'):
+        pass
+
+    # DeleteUser.by_id(db, id)
     return Response(status_code=204)
 
 

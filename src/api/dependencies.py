@@ -19,8 +19,15 @@ def create_tokens(uid: str, role: str, login: str) -> dict:
     
     return {'access_token': access_token, 'refresh_token': refresh_token}
 
-        
-def auntification(login: str = Query(max_length=20), password: str = Query(max_length=20)) -> dict:
+
+def auntification(
+        request: Request, 
+        login: str = Query(max_length=20), 
+        password: str = Query(max_length=20)
+    ) -> dict:
+    if request.cookies.get('access_token'):
+        raise HTTPException(409, 'User is already authenticated')
+    
     db = ConnectionDb().connect(cursor_factory=RealDictCursor)
     user_data = dict(SelectUser.by_login(db, login))
     
@@ -28,6 +35,7 @@ def auntification(login: str = Query(max_length=20), password: str = Query(max_l
         raise HTTPException(401, {'auntification': 'Incorrect password or login', 'status': 401})
     
     tokens = create_tokens(str(user_data['id']), user_data['status'], user_data['login'])
+
     return tokens
 
 

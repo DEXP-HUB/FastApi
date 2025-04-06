@@ -1,45 +1,40 @@
 import smtplib
 
+from configparser import ConfigParser
+
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 
+config = ConfigParser()
+config.read('src\config.ini', encoding='utf-8')
+config_mail = dict(config.items('Mail'))
+
+
 def smtp_settings():
-    data = data_message()
-    
     smtp_server = smtplib.SMTP('smtp.mail.ru', 587)
     smtp_server.starttls()
-    smtp_server.login(data['from_mail'], data['my_password'])
+    smtp_server.login(config_mail['from'], config_mail['password'])
 
     return smtp_server
 
 
-def message():
+def message(addres):
     msg = MIMEMultipart()
-    msg['From'] = 'ali_guseynov_02@mail.ru'
-    msg['To'] = 'gusejnovali508@gmail.com'
-    msg['Subject'] = 'Подтверждение регистрации'
+    msg['From'] = config_mail['from']
+    msg['To'] = addres
+    msg['Subject'] = config_mail['name_message']
 
-    msg_text = 'Спасибо за регистрацию в нашем проекте.'
+    msg_text = config_mail['message']
     msg.attach(MIMEText(msg_text, 'plain'))
 
     return msg
-    
-
-def data_message():
-    return {
-        'from_mail': 'ali_guseynov_02@mail.ru', 
-        'my_password': 'N885Zec2wHBu6v5U2irJ', 
-        'to_mail': 'gusejnovali508@gmail.com',
-        }
 
 
-def send_message():
+def send_message(addres):
     smtp_server = smtp_settings()
-    msg = message()
-    data = data_message()
+    msg = message(addres=addres)
 
-    smtp_server.sendmail(data['from_mail'], data['to_mail'], msg.as_string())
+    smtp_server.sendmail(config_mail['from'], msg['To'], msg.as_string())
     smtp_server.quit()
 
-send_message()
