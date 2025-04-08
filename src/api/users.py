@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi.encoders import jsonable_encoder
-from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse, Response
 
 from authx import TokenPayload
@@ -62,6 +62,12 @@ def login(user_data: dict = Depends(auntification)):
     description='Create new profile to db',
 )
 def registration(user: UserRegSchema, bg_task: BackgroundTasks):
+    db = ConnectionDb().connect()
+    email_in_db = SelectUser().by_email(db, user.email)
+
+    if email_in_db is not None:
+        raise HTTPException(status_code=409, detail='Email already exists')
+
     db = ConnectionDb().connect()
     InsertUser().insert_all(db, dict(user))
 

@@ -26,13 +26,13 @@ def auntification(
         password: str = Query(max_length=20)
     ) -> dict:
     if request.cookies.get('access_token'):
-        raise HTTPException(409, 'User is already authenticated')
+        raise HTTPException(status_code=409, detail='User is already authenticated')
     
     db = ConnectionDb().connect(cursor_factory=RealDictCursor)
     user_data = dict(SelectUser.by_login(db, login))
     
     if user_data == None or user_data['password'] != password:
-        raise HTTPException(401, {'auntification': 'Incorrect password or login', 'status': 401})
+        raise HTTPException(status_code=401, detail='Incorrect password or login')
     
     tokens = create_tokens(str(user_data['id']), user_data['status'], user_data['login'])
 
@@ -43,7 +43,7 @@ def is_admin(payload: TokenPayload = Depends(access_token_required)):
     if payload.role == 'admin':
         return True
     
-    raise HTTPException(status_code=403, detail='Access Denied: Admin privileges required')
+    raise HTTPException(status_code=403, detail='Admin privileges required')
 
 
 def set_param_put(

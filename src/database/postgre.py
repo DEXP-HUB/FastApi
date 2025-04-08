@@ -59,7 +59,6 @@ class SelectUser:
             return manager.fetchone() 
         
     
-
     @classmethod
     def by_login(cls, connect, login):
         cls.conn = connect
@@ -68,7 +67,18 @@ class SelectUser:
 
         with cls.context_manager(cls.conn, cls.sql, cls.login) as manager:
             return manager.fetchone()
-        
+    
+
+    @classmethod
+    def by_email(cls, connect, email):
+        cls.conn = connect
+        cls.email = email
+        cls.sql = "SELECT email FROM users.profiles WHERE email = %s;"
+
+        with cls.context_manager(cls.conn, cls.sql, cls.email) as manager:
+            return manager.fetchone()
+
+
     
 class InsertUser:
     @classmethod

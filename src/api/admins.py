@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, Response
+
+from authx import TokenPayload
 
 from psycopg2.extras import RealDictCursor
 
@@ -16,7 +18,7 @@ router = APIRouter(tags=['Admins API'])
 @router.get(
     path='/users', 
     description='Get all users',
-    dependencies=[Depends(is_admin)]
+    dependencies=[Depends(is_admin)],
 )
 def get_users():
     db = ConnectionDb().connect(cursor_factory=RealDictCursor)  
@@ -39,15 +41,17 @@ async def get_user(id):
 @router.delete(
     path='/delete', 
     description='Delete user from database',
-    dependencies=[Depends(is_admin)]
+    dependencies=[Depends(is_admin)],
 )
-def delete_user(id: int, request: Request):
+def delete_user(id: int, token: TokenPayload = Depends(access_token_required)):
     db = ConnectionDb().connect(cursor_factory=RealDictCursor)
     uid = dict(SelectUser().by_id(db, id))
-    if uid['id'] == request.cookies.get('id'):
-        pass
+    
+    if int(token.sub) == uid['id']:
+        raise HTTPException(status_code=403, detail="You can't delete yourself")
 
-    # DeleteUser.by_id(db, id)
+    db = ConnectionDb().connect()
+    DeleteUser.by_id(db, id)
     return Response(status_code=204)
 
 
@@ -70,4 +74,7 @@ def update_user(user: UserUpdateSchema):
 def new_param(data: dict = Depends(set_param_put)):
     db = ConnectionDb().connect()
     UpdateUser.by_id(db, data)
-    return JSONResponse(status_code=201, content={'status': 201, 'message': 'Updated user'})
+    return JSONResponse(
+        status_code=201, 
+        content={'status': 201, 'message': 'Updated user'}
+        )
